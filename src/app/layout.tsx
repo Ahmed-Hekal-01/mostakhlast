@@ -1,5 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { ThemeProvider, ThemeToggle } from '@/components/Theme';
+import { BackupButton } from '@/components/BackupButton';
 
 export const metadata: Metadata = {
   title: 'نظام متابعة المستخلصات',
@@ -18,19 +20,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body>
-        <nav className="navbar">
-          <div className="navbar-brand">
-            <span className="navbar-icon">📋</span>
-            <span>نظام المستخلصات</span>
-          </div>
-          <div className="navbar-links">
-            <a href="/" className="nav-link">لوحة التحكم</a>
-            <a href="/companies" className="nav-link">الشركات</a>
-          </div>
-        </nav>
-        <main className="main-content">
-          {children}
-        </main>
+        <ThemeProvider>
+          <nav className="navbar">
+            <div className="navbar-brand">
+              <span className="navbar-icon">📋</span>
+              <span>نظام المستخلصات</span>
+            </div>
+            <div className="navbar-links">
+              <a href="/" className="nav-link">لوحة التحكم</a>
+              <a href="/companies" className="nav-link">الشركات</a>
+              <BackupButton />
+              <ThemeToggle />
+            </div>
+          </nav>
+          <main className="main-content">
+            {children}
+          </main>
+        </ThemeProvider>
       </body>
     </html>
   );

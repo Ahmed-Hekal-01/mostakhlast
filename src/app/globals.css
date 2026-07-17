@@ -19,8 +19,8 @@
 
   --danger: #e05252;
   --danger-bg: rgba(224, 82, 82, 0.12);
-  --warning: #f0a500;
-  --warning-bg: rgba(240, 165, 0, 0.12);
+  --warning: #d97706;
+  --warning-bg: rgba(217, 119, 6, 0.12);
   --success: #3ecf8e;
   --success-bg: rgba(62, 207, 142, 0.12);
   --info: #4f7ef8;
@@ -34,6 +34,36 @@
   --font: 'Cairo', 'Segoe UI', Tahoma, sans-serif;
 }
 
+/* ─── Light Mode ────────────────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg: #f4f5f9;
+  --bg-card: #ffffff;
+  --bg-card2: #f0f1f6;
+  --bg-input: #eaecf3;
+  --border: #d8dbe8;
+  --border-light: #c4c8db;
+
+  --text: #1a1d2e;
+  --text-muted: #5a5f7a;
+  --text-dim: #9298b2;
+
+  --primary: #3a67e0;
+  --primary-dark: #2a52c4;
+  --primary-glow: rgba(58, 103, 224, 0.12);
+
+  --danger: #c0392b;
+  --danger-bg: rgba(192, 57, 43, 0.08);
+  --warning: #b45309;
+  --warning-bg: rgba(180, 83, 9, 0.08);
+  --success: #16a34a;
+  --success-bg: rgba(22, 163, 74, 0.08);
+  --info: #3a67e0;
+  --info-bg: rgba(58, 103, 224, 0.08);
+
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.14);
+}
+
 html, body {
   font-family: var(--font);
   background: var(--bg);
@@ -42,6 +72,14 @@ html, body {
   direction: rtl;
   font-size: 15px;
   line-height: 1.6;
+  transition: background 0.2s, color 0.2s;
+}
+
+/* Smooth theme transition for all key elements */
+.navbar, .card, .stat-card, .modal, .alert-item,
+.table-wrap, table, thead th, .form-control, .btn,
+.summary-banner, .badge {
+  transition: background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s;
 }
 
 a { color: var(--primary); text-decoration: none; }
@@ -51,6 +89,27 @@ a:hover { text-decoration: underline; }
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 3px; }
+
+/* ─── Theme Toggle Button ───────────────────────────────────────────────────── */
+.theme-toggle {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  font-size: 1.05rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  background: var(--bg-card2);
+  border-color: var(--border-light);
+  transform: scale(1.08);
+}
 
 /* ─── Navbar ───────────────────────────────────────────────────────────────── */
 .navbar {
@@ -496,4 +555,134 @@ select.form-control { cursor: pointer; }
 }
 @media (max-width: 480px) {
   .stats-grid { grid-template-columns: 1fr; }
+}
+
+/* ===== PRINT STYLES ===== */
+@media print {
+  /* Hide interactive elements */
+  .navbar,
+  .theme-toggle,
+  .btn,
+  .modal-overlay,
+  .toast-container,
+  .breadcrumb a,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset backgrounds for paper */
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+
+  body {
+    font-family: 'Cairo', sans-serif;
+    font-size: 12pt;
+    direction: rtl;
+  }
+
+  .main-content {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+  }
+
+  /* Print header */
+  .print-header {
+    display: block !important;
+    text-align: center;
+    border-bottom: 2pt solid #333;
+    padding-bottom: 8pt;
+    margin-bottom: 12pt;
+  }
+
+  .print-header h1 {
+    font-size: 16pt;
+    margin: 0 0 4pt 0;
+  }
+
+  .print-header p {
+    font-size: 10pt;
+    color: #555 !important;
+    margin: 0;
+  }
+
+  /* Cards become simple boxes */
+  .card, .stat-card, .alerts-panel {
+    border: 1pt solid #ccc !important;
+    padding: 8pt !important;
+    margin-bottom: 8pt !important;
+    border-radius: 0 !important;
+    background: white !important;
+  }
+
+  /* Tables */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+  }
+
+  th, td {
+    border: 0.5pt solid #999 !important;
+    padding: 4pt 6pt !important;
+    text-align: right !important;
+  }
+
+  th {
+    background: #eee !important;
+    font-weight: 700;
+  }
+
+  /* Stats grid — single row for print */
+  .stats-grid {
+    display: flex !important;
+    flex-wrap: wrap;
+    gap: 4pt !important;
+    margin-bottom: 12pt !important;
+  }
+
+  .stat-card {
+    flex: 1 1 120pt !important;
+  }
+
+  /* Progress bar — text only */
+  .progress-bar-wrap { display: none !important; }
+
+  /* Page breaks */
+  .page-break-before { page-break-before: always; }
+  .avoid-break { page-break-inside: avoid; }
+
+  /* Badges visible */
+  .badge {
+    border: 0.5pt solid #333 !important;
+    background: white !important;
+    color: black !important;
+    padding: 1pt 4pt !important;
+  }
+
+  /* Footer on every page */
+  @page {
+    margin: 15mm;
+    size: A4;
+  }
+
+  /* Print date at bottom */
+  .print-footer {
+    display: block !important;
+    text-align: center;
+    font-size: 9pt;
+    color: #555 !important;
+    border-top: 0.5pt solid #ccc;
+    padding-top: 6pt;
+    margin-top: 16pt;
+  }
+}
+
+/* Hidden by default, shown on print */
+.print-header,
+.print-footer {
+  display: none;
 }
