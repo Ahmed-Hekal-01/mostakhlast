@@ -1,40 +1,68 @@
 ' run_hidden.vbs
-' Starts the Mostakhlasat accounting server silently in the background.
-' Called automatically at Windows login by Task Scheduler.
-' No window will appear.
+' Starts the Mostakhlasat server silently at Windows login.
+' Uses the full path to node.exe — no PATH variable needed.
 
 Set oFSO   = CreateObject("Scripting.FileSystemObject")
 Set oShell = CreateObject("WScript.Shell")
 
-' Always run from the folder where this .vbs file lives
+' Run from this script's own folder (works regardless of where it's placed)
 scriptDir = oFSO.GetParentFolderName(WScript.ScriptFullName)
 oShell.CurrentDirectory = scriptDir
 
-' Ensure Node.js is in PATH regardless of how this script is launched
-' (Task Scheduler may have a stripped-down PATH compared to normal login)
-Dim currentPath
-currentPath = oShell.ExpandEnvironmentStrings("%PATH%")
+' ── Find node.exe by checking every common install location ──────────────────
+Dim nodePath
+nodePath = ""
 
-Dim nodePaths(3)
-nodePaths(0) = "C:\Program Files\nodejs"
-nodePaths(1) = "C:\Program Files (x86)\nodejs"
-nodePaths(2) = oShell.ExpandEnvironmentStrings("%APPDATA%\npm")
-nodePaths(3) = oShell.ExpandEnvironmentStrings("%ProgramFiles%\nodejs")
+Dim candidates(7)
+candidates(0) = "C:\Program Files\nodejs\node.exe"
+candidates(1) = "C:\Program Files (x86)\nodejs\node.exe"
+candidates(2) = oShell.ExpandEnvironmentStrings("%ProgramFiles%\nodejs\node.exe")
+candidates(3) = oShell.ExpandEnvironmentStrings("%ProgramFiles(x86)%\nodejs\node.exe")
+candidates(4) = oShell.ExpandEnvironmentStrings("%LOCALAPPDATA%\Programs\nodejs\node.exe")
+candidates(5) = oShell.ExpandEnvironmentStrings("%APPDATA%\nvm\current\node.exe")
+candidates(6) = oShell.ExpandEnvironmentStrings("%NVM_HOME%\current\node.exe")
+candidates(7) = oShell.ExpandEnvironmentStrings("%NVM_SYMLINK%\node.exe")
 
 Dim i
-For i = 0 To 3
-    If InStr(currentPath, nodePaths(i)) = 0 Then
-        If oFSO.FolderExists(nodePaths(i)) Then
-            oShell.Environment("PROCESS")("PATH") = currentPath & ";" & nodePaths(i)
-            currentPath = currentPath & ";" & nodePaths(i)
-        End If
+For i = 0 To 7
+    If oFSO.FileExists(candidates(i)) Then
+        nodePath = candidates(i)
+        Exit For
     End If
 Next
 
-' If the app was never built, run visible START.bat first
+' Last resort: ask Windows where node is
+If nodePath = "" Then
+    On Error Resume Next
+    Dim oExec
+    Set oExec = oShell.Exec("where node.exe")
+    If Err.Number = 0 Then
+        Dim foundLine
+        foundLine = Trim(oExec.StdOut.ReadLine())
+        If oFSO.FileExists(foundLine) Then nodePath = foundLine
+    End If
+    On Error GoTo 0
+End If
+
+' ── node.exe not found at all ─────────────────────────────────────────────────
+If nodePath = "" Then
+    MsgBox "Node.js was not found on this machine." & vbCrLf & vbCrLf & _
+           "Please install Node.js from: https://nodejs.org" & vbCrLf & _
+           "(Choose the LTS version)" & vbCrLf & vbCrLf & _
+           "After installing, restart Windows.", _
+           vbCritical, "Mostakhlasat - Setup Required"
+    WScript.Quit 1
+End If
+
+' ── First time: .next folder missing — run visible setup ─────────────────────
 If Not oFSO.FolderExists(scriptDir & "\.next") Then
     oShell.Run "cmd /c """ & scriptDir & "\START.bat""", 1, True
-Else
-    ' Start the server completely silently (window style 0 = hidden)
-    oShell.Run "cmd /c npm start", 0, False
+    WScript.Quit 0
 End If
+
+' ── Start the server silently using direct node call (no npm needed) ──────────
+Dim nextBin
+nextBin = scriptDir & "\node_modules\next\dist\bin\next"
+
+' Window style 0 = completely hidden, False = don't wait (fire and forget)
+oShell.Run """" & nodePath & """ """ & nextBin & """ start", 0, False
